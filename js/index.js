@@ -164,8 +164,13 @@
 		}
 
 		var audioSource = audioSelect.value;
-		var videoSource = videoSelect.querySelector('option:nth-child(2)').value;
-		console.log(videoSource);
+
+		var videoSource;
+		if(videoSelect.length > 1) {
+			videoSource = videoSelect.querySelector('option:nth-child(2)').value;
+		} else {
+			videoSource = videoSelect.value;
+		}
 
 		var constraints = {
 			audio: {
