@@ -1,0 +1,27 @@
+@font-face {
+	font-family: 'Snell Roundhand';
+	src: url('../fonts/snellroundhand-bold-webfont.ttf') format('truetype');
+	font-weight: bold;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Helvetica';
+	src: url('../fonts/helvetica-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Helvetica';
+	src: url('../fonts/helvetica-bold-webfont.ttf') format('truetype');
+	font-weight: bold;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Caviar Dreams';
+	src: url('../fonts/caviardreams-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
