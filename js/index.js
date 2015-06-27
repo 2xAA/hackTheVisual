@@ -85,15 +85,15 @@
 	var videoElement = $.querySelector('video'),
 		canvas = $.querySelector('canvas'),
 		ctx = canvas.getContext('2d'),
-		audioSelect = $.querySelector('select#audioSource'),
+		// audioSelect = $.querySelector('select#audioSource'),
 		videoSelect = $.querySelector('select#videoSource');
 
 	canvas.addEventListener('click', function() {
 
-		var dataURL = canvas.toDataURL('image/png');
+		var dataURL = canvas.toDataURL('image/jpeg', 80);
 		var blob = dataURItoBlob(dataURL);
 		var filename = 'teamname-teammember-' + Date.now();
-		nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
+		nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename + '.jpg');
 
 		imagesTaken++;
 		if(imagesTaken == 3) {
@@ -116,11 +116,7 @@
 			var sourceInfo = sourceInfos[i];
 			var option = $.createElement('option');
 			option.value = sourceInfo.id;
-			if (sourceInfo.kind === 'audio') {
-				option.text = sourceInfo.label || 'microphone ' +
-					(audioSelect.length + 1);
-				audioSelect.appendChild(option);
-			} else if (sourceInfo.kind === 'video') {
+			if (sourceInfo.kind === 'video') {
 				option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
 				videoSelect.appendChild(option);
 			} else {
@@ -163,8 +159,6 @@
 			window.stream.stop();
 		}
 
-		var audioSource = audioSelect.value;
-
 		var videoSource;
 		if(videoSelect.length > 1) {
 			videoSource = videoSelect.querySelector('option:nth-child(2)').value;
@@ -175,11 +169,7 @@
 		console.log(videoSelect.length);
 
 		var constraints = {
-			audio: {
-				optional: [{
-					sourceId: audioSource
-				}]
-			},
+			audio: false,
 			video: {
 				optional: [{
 					sourceId: videoSource
