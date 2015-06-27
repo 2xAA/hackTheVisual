@@ -1,5 +1,3 @@
-/* global getXMLHTTPObject */
-
 (function () {
 	'use strict';
 	/*jslint browser: true */
@@ -22,7 +20,7 @@
     data.append('Signature', '0eaGdJXamO7lYTVDBkMKOh68Dx4=');
     data.append('file', file);
 
-    var xhr = getXMLHTTPObject();
+    var xhr = new XMLHttpRequest();
 
     xhr.upload.addEventListener('progress', options.onUploadProgress || consoleLogIt('progress'), false);
     xhr.addEventListener('load', options.onLoad || consoleLogIt('load'), false);
