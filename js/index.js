@@ -92,8 +92,8 @@
 
 		var dataURL = canvas.toDataURL('image/jpeg', 80);
 		var blob = dataURItoBlob(dataURL);
-		var filename = 'teamname-teammember-' + Date.now();
-		nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename + '.jpg');
+		var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
+		nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
 
 		imagesTaken++;
 		if(imagesTaken == 3) {
