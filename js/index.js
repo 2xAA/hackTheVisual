@@ -20,6 +20,7 @@
     data.append('AWSAccessKeyId', 'AKIAJQRHD64IH6IEIUOA');
     data.append('Policy', 'eyJleHBpcmF0aW9uIjoiMjAyMC0xMi0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoic3BsYXRtYXAifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsIiJdLHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJENvbnRlbnQtVHlwZSIsCiIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDUyNDI4ODAwMF1dfQ==');
     data.append('Signature', '0eaGdJXamO7lYTVDBkMKOh68Dx4=');
+    data.append('file', file);
 
     var xhr = getXMLHTTPObject();
 
@@ -30,7 +31,7 @@
 
     xhr.open('POST', 'http://splatmap.s3-eu-west-1.amazonaws.com', true);
 
-    xhr.send();
+    xhr.send(data);
   }
 
 	var videoElement = document.querySelector('video');
