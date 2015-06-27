@@ -1,4 +1,3 @@
-/* global getXMLHTTPObject */
 ;(function () {
 	'use strict';
 	/*jslint browser: true */
