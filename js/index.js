@@ -172,6 +172,8 @@
 			videoSource = videoSelect.value;
 		}
 
+		console.log(videoSelect.length);
+
 		var constraints = {
 			audio: {
 				optional: [{
