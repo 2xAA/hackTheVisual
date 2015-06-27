@@ -1,6 +1,37 @@
-;(function () {
+/* global getXMLHTTPObject */
+
+(function () {
 	'use strict';
 	/*jslint browser: true */
+
+  var consoleLogIt = function (name) {
+    return function () {
+      console.log(name, arguments);
+    };
+  };
+
+  function upload(options) {
+    var file = options.file;
+    var data = new FormData();
+
+    data.append('key', 'images/' + options.filename);
+    data.append('acl', 'public-read');
+    data.append('Content-Type', file.type);
+    data.append('AWSAccessKeyId', 'AKIAJQRHD64IH6IEIUOA');
+    data.append('Policy', 'eyJleHBpcmF0aW9uIjoiMjAyMC0xMi0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoic3BsYXRtYXAifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsIiJdLHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJENvbnRlbnQtVHlwZSIsCiIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDUyNDI4ODAwMF1dfQ==');
+    data.append('Signature', '0eaGdJXamO7lYTVDBkMKOh68Dx4=');
+
+    var xhr = getXMLHTTPObject();
+
+    xhr.upload.addEventListener('progress', options.onUploadProgress || consoleLogIt('progress'), false);
+    xhr.addEventListener('load', options.onLoad || consoleLogIt('load'), false);
+    xhr.addEventListener('error', options.onError || consoleLogIt('error'), false);
+    xhr.addEventListener('abort', options.onAbort || consoleLogIt('abort'), false);
+
+    xhr.open('POST', 'http://splatmap.s3-eu-west-1.amazonaws.com', true);
+
+    xhr.send();
+  }
 
 	var videoElement = document.querySelector('video');
 	var audioSelect = document.querySelector('select#audioSource');
