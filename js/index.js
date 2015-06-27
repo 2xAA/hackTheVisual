@@ -104,7 +104,7 @@
 
 		upload({
 			file: blob,
-			filename: 'teamname-teammember-' + Date.now()
+			filename: filename
 		});
 	});
 
