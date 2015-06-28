@@ -157,8 +157,14 @@ section.scores div#timer {
   line-height: 50px;
   background-color: rgba(51, 51, 51, 0.5);
 }
-section.scores div#team-score {
+section.scores div#team-score.blue {
+  background-color: #0f0f62;
+}
+section.scores div#team-score.pink {
   background-color: #E61885;
+}
+section.scores div#team-score {
+  background-color: rgba(51, 51, 51, 0.5);
   width: 35%;
 }
 section.scores div#team-score span#score {
