@@ -14,13 +14,18 @@ var playerID;
 var started = false;
 
 var position;
+var playerName;
+var playerState;
+var playerTeam;
+
+var gameID;
 
 function createNewCloud(images) {
 	var cloud = {
 		coordinates: [
-		position.latitude,
-		position.longitude,
-		position.altitude
+			position.latitude,
+			position.longitude,
+			position.altitude
 		],
 		orientation: orientation,
 		images: images,
@@ -142,13 +147,10 @@ function dataURItoBlob(dataURI) {
 				canvas.width = videoElement.videoWidth;
 				canvas.height = videoElement.videoHeight;
 
-				//console.log(videoElement.videoWidth, videoElement.videoHeight);
-
 				canvas.style.width = window.innerWidth + 'px';
 				canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
 
 
-				//console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
 			}
 
 			ctx.drawImage(videoElement, 0, 0);
@@ -214,11 +216,30 @@ function dataURItoBlob(dataURI) {
  			name: 'Danny',
  			orientation: orientation,
  			coordinates: [
- 			position.latitude,
- 			position.longitude,
- 			position.altitude
+	 			position.latitude,
+	 			position.longitude,
+	 			position.altitude
  			]
  		});
+ 	}
+
+ 	function doOnStateUpdate(state, data) {
+ 		switch(state) {
+ 			case 'waiting for server response':
+ 					
+ 				break;
+
+ 			case 'waiting for game':
+ 					console.log('still waiting');
+ 				break;
+
+ 			case 'in game':
+ 					playerTeam = data.team_name;
+ 					gameID = data.game_id;
+  					console.log('Assigned a game!', 'On team:', playerTeam, 'and have game ID:', gameID);
+ 				break;
+ 		}
+
  	}
 
  	function boot() {
@@ -248,10 +269,27 @@ function dataURItoBlob(dataURI) {
 
 		// Register player with Firebase
 		var players = new Firebase('https://splatmap.firebaseio.com/players');
-		var myref = players.push({name: 'Sam'}); // must have something
-		myref.on('value', function(data) {
-			playerID = data.key();
-		});
+
+		// Grab random name
+		var script = document.createElement("script");
+		script.src = "http://randomword.setgetgo.com/get.php?callback=randomName";
+		window.randomName = function(name) {
+			playerName = name.Word.toLowerCase().replace('\r\n', '');
+			playerState = 'waiting for server to call';
+
+			var myref = players.push({name: playerName/*, state: 'waiting for server to call'*/}); // must have something
+
+			myref.on('value', function(data) {
+				playerID = data.key();
+				playerState = data.val().state;
+
+				doOnStateUpdate(playerState, data.val());
+
+				console.log(data.val());
+
+			});
+		};
+		document.body.appendChild(script);
 
 		document.getElementById('dropdown').addEventListener('click', function() {
 			var controlsSection = document.querySelector("section.controls");
