@@ -42,6 +42,8 @@ module.exports = function(grunt) {
     connect: {
       options: {
         port: process.env.PORT || 3131,
+        host: "0.0.0.0",
+        hostname: "0.0.0.0",
         base: 'dist/',
       },
 
