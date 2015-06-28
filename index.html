@@ -11,9 +11,21 @@
 <body>
 
     <header>
-        <img src="img/splatmap-logo-with-text-transparent.png" alt="splat map" id="logo">
-    
-        <a href="#" id="dropdown"><img src="img/Gear_icon-white.png" alt="setting" ></a>
+       <img src="img/splatmap-logo-with-text-transparent.png" alt="splat map" id="logo"/>
+        
+        <nav>
+             <ul>
+        <li>
+            <a href="#" id="camera-link"><img src="img/camera_icon.png" alt="map"></a>
+        </li>
+
+        <li>
+            <a href="#" id="map-link"><img src="img/map_marker_icon.png" alt="marker"></a>
+        </li>
+        <li>
+            <a href="#" id="dropdown"><img src="img/Gear_icon-white.png" alt="setting" ></a>
+        </li>
+    </ul>
     </header>
 
     <section class="controls hidden">
@@ -30,15 +42,18 @@
         <video muted autoplay class="pure-img" hidden></video>
         <canvas class="pure-img"></canvas>
     </section>
-    </div>
+    <section class="scores">
+        
         <div id="timer" class="lower">
-        00:00
+            00:00
+        </div>
+        <div id="team-score" class="lower">
+            Team PINK
+            <br/>
+            <span id="score">(SCORE) </span>
+        </div>
     </div>
-    <div id="team-score" class="lower">
-        Team PINK
-        <br/>
-        <span id="score">(SCORE) </span>
-    </div>
+</section>
 
 <script id="live-reload" src="http://localhost:35729/livereload.js"></script>
 <script src="app.js"></script>
