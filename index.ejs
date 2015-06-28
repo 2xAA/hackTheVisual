@@ -5,6 +5,7 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Splat Map</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -40,6 +41,7 @@
 
     <section class="video">
         <video muted autoplay class="pure-img" hidden></video>
+        <div class="numbers"></div>
         <canvas class="pure-img"></canvas>
     </section>
     <section class="scores">
@@ -48,9 +50,9 @@
             00:00
         </div>
         <div id="team-score" class="lower">
-            Team PINK
+            <span class="team-name">Waiting for team</span>
             <br/>
-            <span id="score">(SCORE) </span>
+            <span id="score"></span>
         </div>
     </div>
 </section>

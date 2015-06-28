@@ -8,22 +8,36 @@ var player = new Firebase("https://splatmap.firebaseio.com/player");
 var imagesTaken = 0;
 var maxImages = 5;
 var nameCloud = [];
+var nameCloudBase = [];
 var watchPositionID;
 var orientation;
 var playerID;
 var started = false;
 
-var position;
+var position = {};
+var playerName;
+var playerState;
+var playerTeam;
+
+var playerRef; //firebase reference
+
+var gameID;
+
+var scoreElement = document.querySelector('span#score');
+var teamScore = 0;
 
 function createNewCloud(images) {
 	var cloud = {
 		coordinates: [
-		position.latitude,
-		position.longitude,
-		position.altitude
+			position.latitude,
+			position.longitude,
+			position.altitude
 		],
 		orientation: orientation,
 		images: images,
+		gameID: gameID,
+		playerTeam: playerTeam,
+		playerName: playerName,
 		player: {
 			id: playerID,
 			name: 'Sam'
@@ -96,15 +110,20 @@ function dataURItoBlob(dataURI) {
 		videoSelect = $.querySelector('select#videoSource');
 
 		canvas.addEventListener('click', function() {
+			if(!gameID) return;
 
 			var dataURL = canvas.toDataURL('image/jpeg', 80);
 			var blob = dataURItoBlob(dataURL);
-			var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
+			var filename = gameID + '-' + playerName + '-' + Date.now()  + '.jpg';
+
 			nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
 
 			imagesTaken++;
+
+			numberEl.textContent = imagesTaken;
+
 			if(imagesTaken == maxImages) {
-				createNewCloud(nameCloud);
+				createNewCloud(nameCloud, nameCloudBase);
 				imagesTaken = 0;
 				nameCloud = [];
 			}
@@ -142,13 +161,10 @@ function dataURItoBlob(dataURI) {
 				canvas.width = videoElement.videoWidth;
 				canvas.height = videoElement.videoHeight;
 
-				//console.log(videoElement.videoWidth, videoElement.videoHeight);
-
 				canvas.style.width = window.innerWidth + 'px';
 				canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
 
 
-				//console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
 			}
 
 			ctx.drawImage(videoElement, 0, 0);
@@ -209,21 +225,72 @@ function dataURItoBlob(dataURI) {
 
  		orientation = [alpha, beta, gamma];
 
- 		player.set({
- 			id: playerID,
- 			name: 'Danny',
- 			orientation: orientation,
- 			coordinates: [
- 			position.latitude,
- 			position.longitude,
- 			position.altitude
- 			]
- 		});
+ 	// 	if(position) {
+		// 	if(("latitude" in position) && ("longitude" in  position)) {
+
+		// 		playerRef.update({
+		// 			coordinates: [
+		// 	 			position.latitude,
+		// 				position.longitude
+		// 			],
+		// 			orientation: [
+		// 				alpha,
+		// 				beta,
+		// 				gamma
+		// 			]
+		// 		});
+		// 	} else {
+		// 		playerRef.update({
+		// 			orientation: [
+		// 				alpha,
+		// 				beta,
+		// 				gamma
+		// 			]
+		// 		});
+		// 	}
+		// } else {
+		// 	playerRef.update({
+		// 		orientation: [
+		// 			alpha,
+		// 			beta,
+		// 			gamma
+		// 		]
+		// 	});
+		// }
+ 		
+ 	}
+
+ 	function doOnStateUpdate(state, data) {
+ 		switch(state) {
+ 			case 'waiting for server response':
+ 					
+ 				break;
+
+ 			case 'waiting for game':
+ 					console.log('still waiting');
+ 				break;
+
+ 			case 'in game':
+ 					playerTeam = data.team_name;
+ 					gameID = data.game_id;
+  					console.log('Assigned a game!', 'On team:', playerTeam, 'and have game ID:', gameID);
+
+  					if(playerTeam == 'Blue') {
+  						document.getElementById('team-score').classList.add('blue');
+  						document.querySelector('span.team-name').textContent = 'Team BLUE';
+  					} else {
+  						document.getElementById('team-score').classList.add('pink');
+  						document.querySelector('span.team-name').textContent = 'Team PINK';
+  					}
+
+  					scoreElement.textContent = 0;
+
+ 				break;
+ 		}
+
  	}
 
  	function boot() {
-		// Get orientation
-		window.addEventListener('deviceorientation', handleOrientation);
 
 		// Get MediaStreamTrack
 		if (typeof MediaStreamTrack === 'undefined' || typeof MediaStreamTrack.getSources === 'undefined') {
@@ -239,19 +306,48 @@ function dataURItoBlob(dataURI) {
 			maximumAge: 0
 		};
 
-		// Request constant position updates
-		watchPositionID = navigator.geolocation.watchPosition(function(pos) {
-			position = pos.coords;
-		}, function(e) {
-			console.error('watchPosition error', e);
-		}, PositionOptions);
-
 		// Register player with Firebase
 		var players = new Firebase('https://splatmap.firebaseio.com/players');
-		var myref = players.push({name: 'Sam'}); // must have something
-		myref.on('value', function(data) {
-			playerID = data.key();
-		});
+
+		// Grab random name
+		var script = document.createElement("script");
+		script.src = "http://randomword.setgetgo.com/get.php?callback=randomName";
+		window.randomName = function(name) {
+			playerName = name.Word.toLowerCase().replace('\r\n', '');
+			playerState = 'waiting for server to call';
+
+			playerRef = players.push({name: playerName}); // must have something
+
+			// Get orientation now we have a place to update
+			window.addEventListener('deviceorientation', handleOrientation);
+
+			// Request constant position updates of coords now we have player ref
+			watchPositionID = navigator.geolocation.watchPosition(function(pos) {
+				position = pos.coords;
+
+				playerRef.update({
+					coordinates: [
+			 			position.latitude,
+						position.longitude
+					]
+				});
+
+			}, function(e) {
+				console.error('watchPosition error', e);
+			}, PositionOptions);
+
+			// Grab player ID and state, listen for state changes
+			playerRef.on('value', function(data) {
+				playerID = data.key();
+				playerState = data.val().state;
+
+				doOnStateUpdate(playerState, data.val());
+
+				console.log(data.val());
+
+			});
+		};
+		document.body.appendChild(script);
 
 		document.getElementById('dropdown').addEventListener('click', function() {
 			var controlsSection = document.querySelector("section.controls");
@@ -261,4 +357,3 @@ function dataURItoBlob(dataURI) {
 	}
 
 	boot();
-	
