@@ -179,6 +179,7 @@ section.scores div#team-score span#score {
   text-align: center;
   font-size: 60vh;
   color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
 }
 /* LANDING PAGE */
 div#welcome-message {
