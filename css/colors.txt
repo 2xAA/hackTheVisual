@@ -1,0 +1,5 @@
+pink: #E61885;
+blue:#0f0f62;
+blue-green: #00acc1;
+text-color:#000000;
+header-text-color: #FFFFFF;

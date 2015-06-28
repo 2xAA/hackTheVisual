@@ -11,10 +11,13 @@
 	<body>
 
 		<header>
-			<h1>Splat Map</h1>
+			<img src="imgs/splatmap-logo-with-text-transparent.png" alt="splat map" id="logo">
+		
+			<a href="#" id="dropdown"><img src="imgs/Gear_icon-white.png" alt="setting" ></a>
 		</header>
 
-		<section class="controls">
+		
+		<section class="controls hidden">
 			<div class="select">
 				<label for="audioSource">Audio source: </label><select id="audioSource"></select>
 			</div>
@@ -26,11 +29,28 @@
 
 		<section class="video">
 			<video muted autoplay class="pure-img" hidden></video>
-			<canvas></canvas>
+			<canvas class="pure-img"></canvas>
 		</section>
+		</div>
+			<div id="timer" class="lower">
+			00:00
+		</div>
+		<div id="team-score" class="lower">
+			Team PINK
+			<br/>
+			<span id="score">(SCORE) </span>
+		</div>
 		
 		<script src="//cdn.firebase.com/js/client/2.2.7/firebase.js"></script>
 		<script type="text/javascript" src="js/index.js"></script>
+		<script type="text/javascript">
 
+			document.getElementById('dropdown').addEventListener('click', function() {
+				var controlsSection = document.querySelector("section.controls");
+				this.classList.toggle('active');
+				controlsSection.classList.toggle('hidden');
+			});
+			
+		</script>
 	</body>
 </html>
