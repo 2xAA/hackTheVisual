@@ -171,6 +171,15 @@ section.scores div#team-score span#score {
   font-size: 20px;
   /* Landscape layout (with min-width) */
 }
+.numbers {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 60vh;
+  color: rgba(255, 255, 255, 0.5);
+}
 /* LANDING PAGE */
 div#welcome-message {
   margin-top: 50px;
