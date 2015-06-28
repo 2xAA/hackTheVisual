@@ -105,8 +105,8 @@ nav ul {
   width: 100%;
 }
 nav li {
-  list-style: none;
   width: 33%;
+  text-decoration: none;
 }
 nav li a {
   display: block;
