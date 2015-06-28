@@ -25,6 +25,7 @@ var gameID;
 
 var scoreElement = document.querySelector('span#score');
 var teamScore = 0;
+var numberEl = document.querySelector('div.numbers');
 
 function createNewCloud(images) {
 	var cloud = {
