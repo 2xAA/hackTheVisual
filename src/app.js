@@ -11,6 +11,7 @@ var nameCloud = [];
 var watchPositionID;
 var orientation;
 var playerID;
+var started = false;
 
 var position;
 
@@ -141,13 +142,13 @@ function dataURItoBlob(dataURI) {
 				canvas.width = videoElement.videoWidth;
 				canvas.height = videoElement.videoHeight;
 
-				console.log(videoElement.videoWidth, videoElement.videoHeight);
+				//console.log(videoElement.videoWidth, videoElement.videoHeight);
 
 				canvas.style.width = window.innerWidth + 'px';
 				canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
 
 
-				console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
+				//console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
 			}
 
 			ctx.drawImage(videoElement, 0, 0);
@@ -175,22 +176,23 @@ function dataURItoBlob(dataURI) {
 		}
 
 		var videoSource;
-		if(videoSelect.length > 1) {
+		if(videoSelect.length > 1 && !started) {
 			videoSource = videoSelect.querySelector('option:nth-child(2)').value;
 		} else {
 			videoSource = videoSelect.value;
 		}
 
+		started = true;
+
+		console.log(videoSelect.length, videoSource);
+
 		var constraints = {
 			audio: false,
 			video: {
-				mandatory: {
-					minWidth: 720,
-					minHeight: 1280
-				},
-				optional: [{
-					sourceId: videoSource
-				}]
+				optional: [
+					{sourceId: videoSource},
+					{minHeight: 1280}
+				]
 			}
 		};
 		navigator.getUserMedia(constraints, successCallback, errorCallback);
@@ -250,6 +252,7 @@ function dataURItoBlob(dataURI) {
 		myref.on('value', function(data) {
 			playerID = data.key();
 		});
+
 		document.getElementById('dropdown').addEventListener('click', function() {
 			var controlsSection = document.querySelector("section.controls");
 			this.classList.toggle('active');
