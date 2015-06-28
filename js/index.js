@@ -1,48 +1,48 @@
-var Firebase = require('firebase');
-'use strict';
-/*jslint browser: true */
+;(function () {
+	'use strict';
+	/*jslint browser: true */
 
-var clouds = new Firebase("https://splatmap.firebaseio.com/clouds");
-var player = new Firebase("https://splatmap.firebaseio.com/player");
+	var clouds = new Firebase("https://splatmap.firebaseio.com/clouds");
+	var player = new Firebase("https://splatmap.firebaseio.com/player");
 
-var imagesTaken = 0;
-var maxImages = 5;
-var nameCloud = [];
-var watchPositionID;
-var orientation;
-var playerID;
+	var imagesTaken = 0;
+	var maxImages = 5;
+	var nameCloud = [];
+	var watchPositionID;
+	var orientation;
+	var playerID;
 
-var position;
+	var position;
 
-function createNewCloud(images) {
-	var cloud = {
-		coordinates: [
-		position.latitude,
-		position.longitude,
-		position.altitude
-		],
-		orientation: orientation,
-		images: images,
-		player: {
-			id: playerID,
-			name: 'Sam'
-		}
+	function createNewCloud(images) {
+		var cloud = {
+			coordinates: [
+				position.latitude,
+				position.longitude,
+				position.altitude
+			],
+			orientation: orientation,
+			images: images,
+			player: {
+				id: playerID,
+				name: 'Sam'
+			}
+		};
+
+		clouds.push(cloud);
+	}
+
+	function getUserLocation(cb) {
+		if(navigator.geolocation) navigator.geolocation.getCurrentPosition(cb);
+	}
+
+	var consoleLogIt = function(name) {
+		return function() {
+			console.log(name, arguments);
+		};
 	};
 
-	clouds.push(cloud);
-}
-
-function getUserLocation(cb) {
-	if(navigator.geolocation) navigator.geolocation.getCurrentPosition(cb);
-}
-
-var consoleLogIt = function(name) {
-	return function() {
-		console.log(name, arguments);
-	};
-};
-
-function dataURItoBlob(dataURI) {
+	function dataURItoBlob(dataURI) {
 		// convert base64/URLEncoded data component to raw binary data held in a string
 		var byteString;
 		if (dataURI.split(',')[0].indexOf('base64') >= 0)
@@ -89,71 +89,71 @@ function dataURItoBlob(dataURI) {
 	var $ = document;
 
 	var videoElement = $.querySelector('video'),
-	canvas = $.querySelector('canvas'),
-	ctx = canvas.getContext('2d'),
+		canvas = $.querySelector('canvas'),
+		ctx = canvas.getContext('2d'),
 		// audioSelect = $.querySelector('select#audioSource'),
 		videoSelect = $.querySelector('select#videoSource');
 
-		canvas.addEventListener('click', function() {
+	canvas.addEventListener('click', function() {
 
-			var dataURL = canvas.toDataURL('image/jpeg', 80);
-			var blob = dataURItoBlob(dataURL);
-			var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
-			nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
+		var dataURL = canvas.toDataURL('image/jpeg', 80);
+		var blob = dataURItoBlob(dataURL);
+		var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
+		nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
 
-			imagesTaken++;
-			if(imagesTaken == maxImages) {
-				createNewCloud(nameCloud);
-				imagesTaken = 0;
-				nameCloud = [];
-			}
+		imagesTaken++;
+		if(imagesTaken == maxImages) {
+			createNewCloud(nameCloud);
+			imagesTaken = 0;
+			nameCloud = [];
+		}
 
-			upload({
-				file: blob,
-				filename: filename
-			});
+		upload({
+			file: blob,
+			filename: filename
 		});
+	});
 
-		navigator.getUserMedia = navigator.getUserMedia ||
+	navigator.getUserMedia = navigator.getUserMedia ||
 		navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-		function gotSources(sourceInfos) {
-			for (var i = 0; i !== sourceInfos.length; ++i) {
-				var sourceInfo = sourceInfos[i];
-				var option = $.createElement('option');
-				option.value = sourceInfo.id;
-				if (sourceInfo.kind === 'video') {
-					option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
-					videoSelect.appendChild(option);
-				} else {
-					console.log('Some other kind of source: ', sourceInfo);
-				}
+	function gotSources(sourceInfos) {
+		for (var i = 0; i !== sourceInfos.length; ++i) {
+			var sourceInfo = sourceInfos[i];
+			var option = $.createElement('option');
+			option.value = sourceInfo.id;
+			if (sourceInfo.kind === 'video') {
+				option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+				videoSelect.appendChild(option);
+			} else {
+				console.log('Some other kind of source: ', sourceInfo);
 			}
-
-			startStream();
 		}
 
-		function canvasLoop() {
-			requestAnimationFrame(canvasLoop);
-			
-			if(canvas.width === 0) {
+		startStream();
+	}
 
-				canvas.width = videoElement.videoWidth;
-				canvas.height = videoElement.videoHeight;
+	function canvasLoop() {
+		requestAnimationFrame(canvasLoop);
+		
+		if(canvas.width === 0) {
 
-				console.log(videoElement.videoWidth, videoElement.videoHeight);
+			canvas.width = videoElement.videoWidth;
+			canvas.height = videoElement.videoHeight;
 
-				canvas.style.width = window.innerWidth + 'px';
-				canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
+			console.log(videoElement.videoWidth, videoElement.videoHeight);
+
+			canvas.style.width = window.innerWidth + 'px';
+			canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
 
 
-				console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
-			}
-
-			ctx.drawImage(videoElement, 0, 0);
+			console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
 		}
 
-		function successCallback(stream) {
+		ctx.drawImage(videoElement, 0, 0);
+	}
+
+	function successCallback(stream) {
 		window.stream = stream; // make stream available to console
 		videoElement.src = window.URL.createObjectURL(stream);
 		videoElement.play();
@@ -212,14 +212,14 @@ function dataURItoBlob(dataURI) {
  			name: 'Danny',
  			orientation: orientation,
  			coordinates: [
- 			position.latitude,
- 			position.longitude,
- 			position.altitude
- 			]
+				position.latitude,
+				position.longitude,
+				position.altitude
+			]
  		});
- 	}
+	}
 
- 	function boot() {
+	function boot() {
 		// Get orientation
 		window.addEventListener('deviceorientation', handleOrientation);
 
@@ -250,12 +250,8 @@ function dataURItoBlob(dataURI) {
 		myref.on('value', function(data) {
 			playerID = data.key();
 		});
-		document.getElementById('dropdown').addEventListener('click', function() {
-			var controlsSection = document.querySelector("section.controls");
-			this.classList.toggle('active');
-			controlsSection.classList.toggle('hidden');
-		});
 	}
 
 	boot();
-	
+
+})();
