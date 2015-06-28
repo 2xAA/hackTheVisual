@@ -266,27 +266,32 @@ module.exports = Firebase;
 
 },{}],2:[function(require,module,exports){
 var Firebase = require('firebase');
-
 'use strict';
 /*jslint browser: true */
 
 var clouds = new Firebase("https://splatmap.firebaseio.com/clouds");
+var player = new Firebase("https://splatmap.firebaseio.com/player");
 
 var imagesTaken = 0;
+var maxImages = 5;
 var nameCloud = [];
 var watchPositionID;
+var orientation;
+var playerID;
 
 var position;
 
 function createNewCloud(images) {
 	var cloud = {
 		coordinates: [
-			position.latitude,
-			position.longitude
+		position.latitude,
+		position.longitude,
+		position.altitude
 		],
+		orientation: orientation,
 		images: images,
 		player: {
-			id: 0,
+			id: playerID,
 			name: 'Sam'
 		}
 	};
@@ -305,181 +310,220 @@ var consoleLogIt = function(name) {
 };
 
 function dataURItoBlob(dataURI) {
-	// convert base64/URLEncoded data component to raw binary data held in a string
-	var byteString;
-	if (dataURI.split(',')[0].indexOf('base64') >= 0)
-		byteString = atob(dataURI.split(',')[1]);
-	else
-		byteString = unescape(dataURI.split(',')[1]);
+		// convert base64/URLEncoded data component to raw binary data held in a string
+		var byteString;
+		if (dataURI.split(',')[0].indexOf('base64') >= 0)
+			byteString = atob(dataURI.split(',')[1]);
+		else
+			byteString = unescape(dataURI.split(',')[1]);
 
-	// separate out the mime component
-	var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+		// separate out the mime component
+		var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
-	// write the bytes of the string to a typed array
-	var ia = new Uint8Array(byteString.length);
-	for (var i = 0; i < byteString.length; i++) {
-		ia[i] = byteString.charCodeAt(i);
+		// write the bytes of the string to a typed array
+		var ia = new Uint8Array(byteString.length);
+		for (var i = 0; i < byteString.length; i++) {
+			ia[i] = byteString.charCodeAt(i);
+		}
+
+		return new Blob([ia], {type:mimeString});
 	}
 
-	return new Blob([ia], {type:mimeString});
-}
+	function upload(options) {
+		var file = options.file;
+		var data = new FormData();
 
-function upload(options) {
-	var file = options.file;
-	var data = new FormData();
+		data.append('key', 'images/' + options.filename);
+		data.append('acl', 'public-read');
+		data.append('Content-Type', file.type);
+		data.append('AWSAccessKeyId', 'AKIAJQRHD64IH6IEIUOA');
+		data.append('Policy', 'eyJleHBpcmF0aW9uIjoiMjAyMC0xMi0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoic3BsYXRtYXAifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsIiJdLHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJENvbnRlbnQtVHlwZSIsCiIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDUyNDI4ODAwMF1dfQ==');
+		data.append('Signature', '0eaGdJXamO7lYTVDBkMKOh68Dx4=');
+		data.append('file', file);
 
-	data.append('key', 'images/' + options.filename);
-	data.append('acl', 'public-read');
-	data.append('Content-Type', file.type);
-	data.append('AWSAccessKeyId', 'AKIAJQRHD64IH6IEIUOA');
-	data.append('Policy', 'eyJleHBpcmF0aW9uIjoiMjAyMC0xMi0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoic3BsYXRtYXAifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsIiJdLHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJENvbnRlbnQtVHlwZSIsCiIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDUyNDI4ODAwMF1dfQ==');
-	data.append('Signature', '0eaGdJXamO7lYTVDBkMKOh68Dx4=');
-	data.append('file', file);
+		var xhr = new XMLHttpRequest();
 
-	var xhr = new XMLHttpRequest();
+		xhr.upload.addEventListener('progress', options.onUploadProgress || consoleLogIt('progress'), false);
+		xhr.addEventListener('load', options.onLoad || consoleLogIt('load'), false);
+		xhr.addEventListener('error', options.onError || consoleLogIt('error'), false);
+		xhr.addEventListener('abort', options.onAbort || consoleLogIt('abort'), false);
 
-	xhr.upload.addEventListener('progress', options.onUploadProgress || consoleLogIt('progress'), false);
-	xhr.addEventListener('load', options.onLoad || consoleLogIt('load'), false);
-	xhr.addEventListener('error', options.onError || consoleLogIt('error'), false);
-	xhr.addEventListener('abort', options.onAbort || consoleLogIt('abort'), false);
+		xhr.open('POST', 'http://splatmap.s3-eu-west-1.amazonaws.com', true);
 
-	xhr.open('POST', 'http://splatmap.s3-eu-west-1.amazonaws.com', true);
+		xhr.send(data);
+	}
 
-	xhr.send(data);
-}
+	var $ = document;
 
-var $ = document;
-
-var videoElement = $.querySelector('video'),
+	var videoElement = $.querySelector('video'),
 	canvas = $.querySelector('canvas'),
 	ctx = canvas.getContext('2d'),
-	// audioSelect = $.querySelector('select#audioSource'),
-	videoSelect = $.querySelector('select#videoSource');
+		// audioSelect = $.querySelector('select#audioSource'),
+		videoSelect = $.querySelector('select#videoSource');
 
-canvas.addEventListener('click', function() {
+		canvas.addEventListener('click', function() {
 
-	var dataURL = canvas.toDataURL('image/jpeg', 80);
-	var blob = dataURItoBlob(dataURL);
-	var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
-	nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
+			var dataURL = canvas.toDataURL('image/jpeg', 80);
+			var blob = dataURItoBlob(dataURL);
+			var filename = 'teamname-teammember-' + Date.now()  + '.jpg';
+			nameCloud.push('https://s3-eu-west-1.amazonaws.com/splatmap/images/' + filename);
 
-	imagesTaken++;
-	if(imagesTaken == 3) {
-		createNewCloud(nameCloud);
-		imagesTaken = 0;
-		nameCloud = [];
-	}
+			imagesTaken++;
+			if(imagesTaken == maxImages) {
+				createNewCloud(nameCloud);
+				imagesTaken = 0;
+				nameCloud = [];
+			}
 
-	upload({
-		file: blob,
-		filename: filename
-	});
-});
+			upload({
+				file: blob,
+				filename: filename
+			});
+		});
 
-navigator.getUserMedia = navigator.getUserMedia ||
-	navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		navigator.getUserMedia = navigator.getUserMedia ||
+		navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-function gotSources(sourceInfos) {
-	for (var i = 0; i !== sourceInfos.length; ++i) {
-		var sourceInfo = sourceInfos[i];
-		var option = $.createElement('option');
-		option.value = sourceInfo.id;
-		if (sourceInfo.kind === 'video') {
-			option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
-			videoSelect.appendChild(option);
-		} else {
-			console.log('Some other kind of source: ', sourceInfo);
+		function gotSources(sourceInfos) {
+			for (var i = 0; i !== sourceInfos.length; ++i) {
+				var sourceInfo = sourceInfos[i];
+				var option = $.createElement('option');
+				option.value = sourceInfo.id;
+				if (sourceInfo.kind === 'video') {
+					option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+					videoSelect.appendChild(option);
+				} else {
+					console.log('Some other kind of source: ', sourceInfo);
+				}
+			}
+
+			startStream();
 		}
-	}
 
-	startStream();
-}
+		function canvasLoop() {
+			requestAnimationFrame(canvasLoop);
+			
+			if(canvas.width === 0) {
 
-function canvasLoop() {
-	requestAnimationFrame(canvasLoop);
+				canvas.width = videoElement.videoWidth;
+				canvas.height = videoElement.videoHeight;
 
-	if(canvas.width === 0) {
+				console.log(videoElement.videoWidth, videoElement.videoHeight);
+
+				canvas.style.width = window.innerWidth + 'px';
+				canvas.style.height = window.innerWidth * 1.3333333333333333 + 'px';
+
+
+				console.log(window.innerWidth, (window.innerWidth * 1.3333333333333333));
+			}
+
+			ctx.drawImage(videoElement, 0, 0);
+		}
+
+		function successCallback(stream) {
+		window.stream = stream; // make stream available to console
+		videoElement.src = window.URL.createObjectURL(stream);
+		videoElement.play();
+
 		canvas.width = videoElement.videoWidth;
 		canvas.height = videoElement.videoHeight;
+
+		requestAnimationFrame(canvasLoop);
 	}
 
-	ctx.drawImage(videoElement, 0, 0);
-}
-
-function successCallback(stream) {
-	window.stream = stream; // make stream available to console
-	videoElement.src = window.URL.createObjectURL(stream);
-	videoElement.play();
-
-	canvas.width = videoElement.videoWidth;
-	canvas.height = videoElement.videoHeight;
-
-	requestAnimationFrame(canvasLoop);
-}
-
-function errorCallback(error) {
-	console.log('navigator.getUserMedia error: ', error);
-}
-
-function startStream() {
-	if (!!window.stream) {
-		videoElement.src = null;
-		window.stream.stop();
+	function errorCallback(error) {
+		console.log('navigator.getUserMedia error: ', error);
 	}
 
-	var videoSource;
-	if(videoSelect.length > 1) {
-		videoSource = videoSelect.querySelector('option:nth-child(2)').value;
-	} else {
-		videoSource = videoSelect.value;
-	}
-
-	console.log(videoSelect.length);
-
-	var constraints = {
-		audio: false,
-		video: {
-			optional: [{
-				sourceId: videoSource
-			}]
+	function startStream() {
+		if (!!window.stream) {
+			videoElement.src = null;
+			window.stream.stop();
 		}
-	};
-	navigator.getUserMedia(constraints, successCallback, errorCallback);
-}
 
-videoSelect.onchange = startStream;
+		var videoSource;
+		if(videoSelect.length > 1) {
+			videoSource = videoSelect.querySelector('option:nth-child(2)').value;
+		} else {
+			videoSource = videoSelect.value;
+		}
 
-function boot() {
-	// Get MediaStreamTrack
-	if (typeof MediaStreamTrack === 'undefined' || typeof MediaStreamTrack.getSources === 'undefined') {
-		alert('This browser does not support MediaStreamTrack.\n\nTry Chrome.');
-	} else {
-		MediaStreamTrack.getSources(gotSources);
+		var constraints = {
+			audio: false,
+			video: {
+				mandatory: {
+					minWidth: 720,
+					minHeight: 1280
+				},
+				optional: [{
+					sourceId: videoSource
+				}]
+			}
+		};
+		navigator.getUserMedia(constraints, successCallback, errorCallback);
 	}
 
-	// Set position options
-	var PositionOptions = {
-		enableHighAccuracy: true,
-		timeout: 5000,
-		maximumAge: 0
-	};
+	videoSelect.onchange = startStream;
 
-	// Request constant position updates
-	watchPositionID = navigator.geolocation.watchPosition(function(pos) {
-		console.log(pos);
-		position = pos.coords;
-	}, function(e) {
-		console.error('watchPosition error', e);
-	}, PositionOptions);
+	function handleOrientation(event) {
+		var absolute = event.absolute;
 
-	document.getElementById('dropdown').addEventListener('click', function() {
-		var controlsSection = document.querySelector("section.controls");
-		this.classList.toggle('active');
-		controlsSection.classList.toggle('hidden');
-	});
+		var alpha    = event.alpha; // Z In degree in the range [0,360]
+		var beta     = event.beta; // X In degree in the range [-180,180]
+ 		var gamma    = event.gamma; // Y In degree in the range [-90,90]
 
-}
+ 		orientation = [alpha, beta, gamma];
 
-boot();
+ 		player.set({
+ 			id: playerID,
+ 			name: 'Danny',
+ 			orientation: orientation,
+ 			coordinates: [
+ 			position.latitude,
+ 			position.longitude,
+ 			position.altitude
+ 			]
+ 		});
+ 	}
 
+ 	function boot() {
+		// Get orientation
+		window.addEventListener('deviceorientation', handleOrientation);
+
+		// Get MediaStreamTrack
+		if (typeof MediaStreamTrack === 'undefined' || typeof MediaStreamTrack.getSources === 'undefined') {
+			alert('This browser does not support MediaStreamTrack.\n\nTry Chrome.');
+		} else {
+			MediaStreamTrack.getSources(gotSources);
+		}
+
+		// Set position options
+		var PositionOptions = {
+			enableHighAccuracy: true,
+			timeout: 5000,
+			maximumAge: 0
+		};
+
+		// Request constant position updates
+		watchPositionID = navigator.geolocation.watchPosition(function(pos) {
+			position = pos.coords;
+		}, function(e) {
+			console.error('watchPosition error', e);
+		}, PositionOptions);
+
+		// Register player with Firebase
+		var players = new Firebase('https://splatmap.firebaseio.com/players');
+		var myref = players.push({name: 'Sam'}); // must have something
+		myref.on('value', function(data) {
+			playerID = data.key();
+		});
+		document.getElementById('dropdown').addEventListener('click', function() {
+			var controlsSection = document.querySelector("section.controls");
+			this.classList.toggle('active');
+			controlsSection.classList.toggle('hidden');
+		});
+	}
+
+	boot();
+	
 },{"firebase":1}]},{},[2])
